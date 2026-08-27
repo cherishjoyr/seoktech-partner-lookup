@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>석테크 납품 현황 조회</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg: #0f1117;
+  --bg2: #161820;
+  --bg3: #1e2030;
+  --bg4: #252738;
+  --border: #2a2d3e;
+  --border2: #363a52;
+  --text: #cdd6f4;
+  --text2: #a6adc8;
+  --text3: #6c7086;
+  --accent: #89b4fa;
+  --green: #a6e3a1;
+  --yellow: #f9e2af;
+  --red: #f38ba8;
+  --purple: #cba6f7;
+  --teal: #94e2d5;
+  --orange: #fab387;
+  --font: 'Noto Sans KR', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header {
+  width: 100%;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 20px 14px;
+  text-align: center;
+}
+.header-logo { font-size: 22px; font-weight: 700; color: var(--accent); }
+.header-sub { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.conn-badge {
+  display: inline-flex; align-items: center; gap: 5px; margin-top: 8px;
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  background: var(--bg3); border: 1px solid var(--border2);
+}
+
+.container { width: 100%; max-width: 680px; padding: 24px 16px 60px; }
+
+.search-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px; margin-bottom: 20px;
+}
+.search-label {
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  letter-spacing: .7px; text-transform: uppercase; margin-bottom: 8px;
+}
+.search-row { display: flex; gap: 8px; }
+.search-inp {
+  flex: 1; background: var(--bg3); border: 1.5px solid var(--border2);
+  border-radius: 8px; padding: 11px 14px; color: var(--text);
+  font-family: var(--font); font-size: 15px; outline: none;
+  transition: border .15s; letter-spacing: .5px;
+}
+.search-inp:focus { border-color: var(--accent); }
+.search-inp::placeholder { color: var(--text3); font-size: 13px; }
+.search-btn {
+  background: var(--accent); color: var(--bg); border: none;
+  border-radius: 8px; padding: 11px 20px; font-family: var(--font);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: filter .15s; white-space: nowrap;
+}
+.search-btn:hover { filter: brightness(1.12); }
+.search-hint { font-size: 11px; color: var(--text3); margin-top: 8px; line-height: 1.6; }
+
+.status-area { min-height: 40px; display: flex; align-items: center; justify-content: center; }
+.spinner {
+  display: inline-block; width: 22px; height: 22px;
+  border: 3px solid var(--border2); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.result-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.result-count { font-size: 12px; font-weight: 700; color: var(--text3); letter-spacing: .5px; text-transform: uppercase; }
+.result-badge { background: var(--accent); color: var(--bg); font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 10px; }
+
+.result-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+  transition: border-color .15s;
+}
+.result-card:hover { border-color: var(--border2); }
+
+.rc-head {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 14px 16px 12px; background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.rc-drawing { font-size: 16px; font-weight: 700; color: var(--accent); flex: 1; line-height: 1.3; word-break: break-all; }
+.rc-name { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.rc-client-proj { font-size: 10px; color: var(--text3); margin-top: 3px; }
+.step-badge { flex-shrink: 0; font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 20px; white-space: nowrap; }
+
+.rc-progress { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.progress-labels { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.prog-lbl { font-size: 9px; color: var(--text3); text-align: center; flex: 1; transition: color .2s, font-weight .2s; }
+.prog-lbl.done { color: var(--text2); }
+.prog-lbl.current { font-weight: 700; }
+.prog-track { height: 6px; background: var(--bg4); border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+
+.rc-info { padding: 12px 16px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+.info-item { display: flex; flex-direction: column; gap: 2px; }
+.info-lbl { font-size: 10px; color: var(--text3); font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+.info-val { font-size: 13px; color: var(--text2); font-weight: 500; }
+.info-val.highlight { color: var(--green); font-weight: 700; }
+.info-val.empty { color: var(--text3); font-style: italic; }
+.info-val.orange { color: var(--orange); font-weight: 700; }
+.info-val.teal { color: var(--teal); }
+
+.no-result { text-align: center; padding: 40px 20px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; }
+.no-result-ico { font-size: 36px; opacity: .3; margin-bottom: 10px; }
+.no-result-t { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+.no-result-s { font-size: 12px; color: var(--text3); line-height: 1.7; }
+
+.footer { margin-top: auto; padding: 16px; text-align: center; font-size: 11px; color: var(--text3); border-top: 1px solid var(--border); width: 100%; }
+
+@media (max-width: 480px) {
+  .header-logo { font-size: 18px; }
+  .info-grid { grid-template-columns: 1fr; }
+  .search-btn { padding: 11px 14px; font-size: 13px; }
+  .prog-lbl { font-size: 8px; }
+  .rc-drawing { font-size: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">🏭 석테크 납품 현황 조회</div>
+  <div class="header-sub">협력업체 조회 시스템 — 도면번호로 납품 현황을 확인하세요</div>
+  <div class="conn-badge" id="conn-badge">
+    <span id="conn-dot">🔄</span>
+    <span id="conn-text" style="color:var(--yellow)">서버 연결 중...</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="search-card">
+    <div class="search-label">도면번호 조회</div>
+    <div class="search-row">
+      <input
+        id="search-inp"
+        class="search-inp"
+        type="text"
+        placeholder="도면번호 입력 (예: 123-001, 456)"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      >
+      <button class="search-btn" id="search-btn">🔍 조회</button>
+    </div>
+    <div class="search-hint">
+      💡 검색일 기준 최근 2개월 이내의 도면 정보만 조회됩니다. (도면번호 일부 입력 가능)
+    </div>
+  </div>
+
+  <div id="status-area" class="status-area"></div>
+  <div id="result-area"></div>
+</div>
+
+<div class="footer">
+  석테크 납품 현황 조회 시스템 · 조회 전용
+</div>
+
+<script type="module">
+'use strict';
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyClZK2GJVgGSESZfPbPVq_1Orxo-c06-Iw",
+  authDomain: "seoktech-workflow.firebaseapp.com",
+  projectId: "seoktech-workflow",
+  storageBucket: "seoktech-workflow.firebasestorage.app",
+  messagingSenderId: "1024203563004",
+  appId: "1:1024203563004:web:b9b5e80ad05234c8e21c79"
+};
+
+const fbApp  = initializeApp(firebaseConfig);
+const fsdb   = getFirestore(fbApp);
+const DB_DOC = doc(fsdb, 'suktech', 'maindb');
+
+const STEPS = ['도면수신','가공중','가공완료','외주품입고','후처리','납품완료'];
+const SKEYS = ['recv','maching','machDone','outsourceIn','postproc','delivered'];
+const STEP_COLORS = ['#6c7086','#f9e2af','#94e2d5','#89b4fa','#fab387','#a6e3a1'];
+const STEP_ICONS  = ['📄','⚙️','✅','📦','🔧','🎉'];
+const STEP_MSG    = [
+  '도면 수신 — 가공 준비 중',
+  '가공 진행 중',
+  '가공 완료',
+  '외주품 입고 완료',
+  '후처리 진행 중',
+  '납품 완료',
+];
+
+let dbData = null;
+
+function setConn(state) {
+  const dot  = document.getElementById('conn-dot');
+  const text = document.getElementById('conn-text');
+  const badge = document.getElementById('conn-badge');
+  const map = {
+    connecting: { dot:'🔄', text:'서버 연결 중...', color:'#f9e2af' },
+    online:     { dot:'🟢', text:'실시간 데이터 연결됨', color:'#a6e3a1' },
+    offline:    { dot:'🔴', text:'오프라인 — 새로고침 해주세요', color:'#f38ba8' },
+  };
+  const cfg = map[state] || map.connecting;
+  dot.textContent  = cfg.dot;
+  text.textContent = cfg.text;
+  badge.style.borderColor = cfg.color;
+  text.style.color = cfg.color;
+}
+
+async function loadDB() {
+  setConn('connecting');
+  try {
+    const snap = await getDoc(DB_DOC);
+    if (snap.exists()) {
+      dbData = snap.data();
+      setConn('online');
+    } else {
+      setConn('offline');
+      showError('데이터를 불러올 수 없습니다.');
+    }
+  } catch(err) {
+    console.error('Firebase load error:', err);
+    setConn('offline');
+    showError('서버 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
+  }
+}
+
+const fmtDate = d => d ? d.replace(/-/g, '.') : null;
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+function getStepIdx(part) {
+  for(let i = SKEYS.length - 1; i >= 0; i--) {
+    if(part[SKEYS[i]]) return i;
+  }
+  return 0;
+}
+
+function getPartRecvDateObj(part) {
+  const proj = (dbData.projects || []).find(p => p.id === part.projectId);
+  if (part.recvDate) {
+    const s = String(part.recvDate).replace(/[.-]/g, '');
+    if (s.length === 8) {
+      return new Date(parseInt(s.slice(0, 4), 10), parseInt(s.slice(4, 6), 10) - 1, parseInt(s.slice(6, 8), 10));
+    }
+  }
+  if (proj) {
+    if (proj.date && proj.date.length === 4) {
+      const yr = parseInt(proj.year, 10) || new Date().getFullYear();
+      const mo = parseInt(proj.date.slice(0, 2), 10) - 1;
+      const day = parseInt(proj.date.slice(2, 4), 10) || 1;
+      return new Date(yr, mo, day);
+    }
+    if (proj.date) {
+      const s = String(proj.date).replace(/[.-]/g, '');
+      if (s.length === 8) {
+        return new Date(parseInt(s.slice(0, 4), 10), parseInt(s.slice(4, 6), 10) - 1, parseInt(s.slice(6, 8), 10));
+      }
+    }
+    if (proj.year && proj.month) {
+      return new Date(parseInt(proj.year, 10), parseInt(proj.month, 10) - 1, 1);
+    }
+  }
+  return null;
+}
+
+function doSearch() {
+  const raw = (document.getElementById('search-inp').value || '').trim();
+  if (!raw) {
+    showStatus('');
+    document.getElementById('result-area').innerHTML = '';
+    return;
+  }
+  if (!dbData) {
+    showError('데이터 연결 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+
+  // 검색일 기준 2달 전 cutoff
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 2);
+  cutoff.setHours(0, 0, 0, 0);
+
+  const query = raw.toLowerCase();
+  const parts = (dbData.parts || []).filter(p => {
+    if (!(p.drawingNo || '').toLowerCase().includes(query)) return false;
+    const dt = getPartRecvDateObj(p);
+    if (!dt) return true; // 날짜 불명확 시 검색어 일치하면 포함
+    return dt >= cutoff;
+  });
+
+  if (parts.length === 0) {
+    showNoResult(raw);
+    return;
+  }
+  renderResults(parts, raw);
+}
+
+function getPartRecvKey(part) {
+  const proj = (dbData.projects || []).find(p => p.id === part.projectId);
+  if (part.recvDate) {
+    return String(part.recvDate).replace(/[-.]/g, '');
+  }
+  if (proj) {
+    if (proj.date && proj.date.length === 4) {
+      return `${proj.year || '2000'}${proj.date}`;
+    }
+    if (proj.date) {
+      return String(proj.date).replace(/[-.]/g, '');
+    }
+    if (proj.year) {
+      return `${proj.year}0000`;
+    }
+  }
+  return '00000000';
+}
+
+function renderResults(parts) {
+  const area = document.getElementById('result-area');
+  showStatus('');
+  const sorted = [...parts].sort((a, b) => {
+    const da = getPartRecvKey(a);
+    const db = getPartRecvKey(b);
+    if (db !== da) {
+      return db.localeCompare(da); // 최근 일자 우선 (내림차순)
+    }
+    return (a.drawingNo || '').localeCompare(b.drawingNo || '');
+  });
+  let html = `<div class="result-header"><span class="result-count">조회 결과</span><span class="result-badge">${sorted.length}건</span></div>`;
+  for (const part of sorted) html += buildCard(part);
+  area.innerHTML = html;
+}
+
+function buildCard(part) {
+  const stepIdx   = getStepIdx(part);
+  const stepColor = STEP_COLORS[stepIdx];
+  const stepIcon  = STEP_ICONS[stepIdx];
+  const stepMsg   = STEP_MSG[stepIdx];
+
+  const proj   = (dbData.projects || []).find(p => p.id === part.projectId);
+  const client = proj ? (dbData.clients || []).find(c => c.id === proj.clientId) : null;
+  const projLabel = [client?.name, proj?.name].filter(Boolean).join(' › ');
+
+  const projRecvDate = proj ? (proj.date && proj.date.length === 4 ? `${proj.year || ''}.${proj.date.slice(0,2)}.${proj.date.slice(2,4)}` : (fmtDate(proj.date) || '')) : '';
+  const recvDate  = part.recvDate ? fmtDate(part.recvDate) : projRecvDate;
+  const delivered = fmtDate(part.delivered);
+  const postType  = part.postType || null;
+  const qty       = part.qty || null;
+
+  return `
+  <div class="result-card">
+    <div class="rc-head">
+      <div>
+        <div class="rc-drawing">${esc(part.drawingNo)}</div>
+        ${part.name ? `<div class="rc-name">${esc(part.name)}</div>` : ''}
+        ${projLabel ? `<div class="rc-client-proj">${esc(projLabel)}</div>` : ''}
+      </div>
+    </div>
+    <div class="rc-info">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-lbl">도면 수신일</span>
+          <span class="info-val ${recvDate ? '' : 'empty'}">${recvDate || '—'}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-lbl">현재 상태</span>
+          <span class="info-val" style="color:${stepColor};font-weight:700;">${stepIcon} ${stepMsg}</span>
+        </div>
+        ${qty ? `<div class="info-item"><span class="info-lbl">수량</span><span class="info-val">${esc(String(qty))} EA</span></div>` : ''}
+        ${postType ? `<div class="info-item"><span class="info-lbl">후처리 종류</span><span class="info-val teal">${esc(postType)}</span></div>` : ''}
+        <div class="info-item" style="grid-column:1/-1;">
+          <span class="info-lbl">납품일</span>
+          <span class="info-val ${delivered ? 'highlight' : 'empty'}">
+            ${delivered ? '✅ ' + delivered : '납품 예정'}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function showSpinner() {
+  document.getElementById('status-area').innerHTML = `<div class="spinner"></div>`;
+  document.getElementById('result-area').innerHTML = '';
+}
+function showStatus(msg) {
+  document.getElementById('status-area').innerHTML =
+    msg ? `<span style="font-size:13px;color:var(--text3);">${msg}</span>` : '';
+}
+function showError(msg) {
+  document.getElementById('status-area').innerHTML = '';
+  document.getElementById('result-area').innerHTML = `
+    <div class="no-result">
+      <div class="no-result-ico">⚠️</div>
+      <div class="no-result-t">오류 발생</div>
+      <div class="no-result-s">${esc(msg)}</div>
+    </div>`;
+}
+function showNoResult(query) {
+  document.getElementById('status-area').innerHTML = '';
+  document.getElementById('result-area').innerHTML = `
+    <div class="no-result">
+      <div class="no-result-ico">🔍</div>
+      <div class="no-result-t">조회 결과 없음</div>
+      <div class="no-result-s">
+        "<strong>${esc(query)}</strong>" 에 해당하는 도면번호를 찾을 수 없습니다.<br>
+        도면번호를 다시 확인해주세요.
+      </div>
+    </div>`;
+}
+
+// 버튼 이벤트
+document.getElementById('search-btn').addEventListener('click', doSearch);
+document.getElementById('search-inp').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doSearch();
+});
+
+// 초기 연결
+loadDB();
+</script>
+
+</body>
+</html>
