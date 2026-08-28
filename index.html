@@ -384,11 +384,7 @@ function buildCard(part) {
     </div>
     <div class="rc-info">
       <div class="info-grid">
-        <div class="info-item">
-          <span class="info-lbl">도면 수신일</span>
-          <span class="info-val ${recvDate ? '' : 'empty'}">${recvDate || '—'}</span>
-        </div>
-        <div class="info-item">
+        <div class="info-item" style="grid-column:1/-1;">
           <span class="info-lbl">현재 상태</span>
           <span class="info-val" style="color:${stepColor};font-weight:700;">${stepIcon} ${stepMsg}</span>
         </div>
