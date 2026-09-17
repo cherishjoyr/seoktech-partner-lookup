@@ -1,189 +1,500 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>석테크 납품 현황 조회</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --bg: #0f1117;
-  --bg2: #161820;
-  --bg3: #1e2030;
-  --bg4: #252738;
-  --border: #2a2d3e;
-  --border2: #363a52;
-  --text: #cdd6f4;
-  --text2: #a6adc8;
-  --text3: #6c7086;
-  --accent: #89b4fa;
-  --green: #a6e3a1;
-  --yellow: #f9e2af;
-  --red: #f38ba8;
-  --purple: #cba6f7;
-  --teal: #94e2d5;
-  --orange: #fab387;
-  --font: 'Noto Sans KR', sans-serif;
+  --bg-base: #000000;
+  --bg-surface: #121215;
+  --bg-surface-elevated: #1a1a1f;
+  --bg-glass: rgba(18, 18, 21, 0.75);
+  --bg-input: #1e1e24;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: #0A84FF;
+  --text-primary: #FFFFFF;
+  --text-secondary: #8E8E93;
+  --text-tertiary: #636366;
+  --accent-blue: #0A84FF;
+  --accent-blue-soft: rgba(10, 132, 255, 0.12);
+  --accent-green: #30D158;
+  --accent-green-soft: rgba(48, 209, 88, 0.12);
+  --accent-orange: #FF9F0A;
+  --accent-orange-soft: rgba(255, 159, 10, 0.12);
+  --accent-teal: #64D2FF;
+  --accent-teal-soft: rgba(100, 210, 255, 0.12);
+  --accent-purple: #BF5AF2;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", -apple-system, monospace;
+  --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
+  font-family: var(--font-sans);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
 }
 
-.header {
+/* ── APPLE STYLE NAV HEADER ── */
+.nav-header {
   width: 100%;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  padding: 18px 20px 14px;
-  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
-.header-logo { font-size: 22px; font-weight: 700; color: var(--accent); }
-.header-sub { font-size: 12px; color: var(--text3); margin-top: 3px; }
-.conn-badge {
-  display: inline-flex; align-items: center; gap: 5px; margin-top: 8px;
-  font-size: 11px; padding: 3px 10px; border-radius: 20px;
-  background: var(--bg3); border: 1px solid var(--border2);
+.brand-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -0.02em;
+}
+.brand-title span.badge-partner {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--accent-blue-soft);
+  color: var(--accent-blue);
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(10, 132, 255, 0.2);
+}
+.brand-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
-.container { width: 100%; max-width: 680px; padding: 24px 16px 60px; }
+.conn-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.conn-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-orange);
+  transition: background-color 0.3s ease;
+}
+.conn-dot.online { background: var(--accent-green); box-shadow: 0 0 6px rgba(48, 209, 88, 0.5); }
+.conn-dot.offline { background: #FF453A; }
 
-.search-card {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; padding: 20px; margin-bottom: 20px;
+/* ── MAIN CONTAINER ── */
+.container {
+  width: 100%;
+  max-width: 640px;
+  padding: 24px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
-.search-label {
-  font-size: 11px; font-weight: 700; color: var(--text3);
-  letter-spacing: .7px; text-transform: uppercase; margin-bottom: 8px;
-}
-.search-row { display: flex; gap: 8px; }
-.search-inp {
-  flex: 1; background: var(--bg3); border: 1.5px solid var(--border2);
-  border-radius: 8px; padding: 11px 14px; color: var(--text);
-  font-family: var(--font); font-size: 15px; outline: none;
-  transition: border .15s; letter-spacing: .5px;
-}
-.search-inp:focus { border-color: var(--accent); }
-.search-inp::placeholder { color: var(--text3); font-size: 13px; }
-.search-btn {
-  background: var(--accent); color: var(--bg); border: none;
-  border-radius: 8px; padding: 11px 20px; font-family: var(--font);
-  font-size: 14px; font-weight: 700; cursor: pointer;
-  transition: filter .15s; white-space: nowrap;
-}
-.search-btn:hover { filter: brightness(1.12); }
-.search-hint { font-size: 11px; color: var(--text3); margin-top: 8px; line-height: 1.6; }
 
-.status-area { min-height: 40px; display: flex; align-items: center; justify-content: center; }
+/* ── SEGMENTED CONTROL (iOS STYLE) ── */
+.segment-wrapper {
+  background: #1C1C1E;
+  padding: 3px;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  border: 1px solid var(--border-subtle);
+}
+.segment-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-apple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.segment-btn:hover { color: var(--text-primary); }
+.segment-btn.active {
+  background: #2C2C2E;
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ── SEARCH CARD ── */
+.interactive-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.card-header-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 8px;
+}
+.apple-input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s var(--ease-apple);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.apple-input:focus {
+  border-color: var(--border-focus);
+  background: #23232a;
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+}
+.apple-input::placeholder { color: var(--text-tertiary); font-size: 14px; }
+
+.apple-select {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 13px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238E8E93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  transition: all 0.2s var(--ease-apple);
+}
+.apple-select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+}
+.apple-select option {
+  background-color: #1C1C1E;
+  color: #FFFFFF;
+}
+
+.apple-btn {
+  background: var(--accent-blue);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s var(--ease-apple);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 10px rgba(10, 132, 255, 0.3);
+}
+.apple-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.apple-btn:active { transform: scale(0.97); filter: brightness(0.95); }
+
+.card-hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+/* ── STATUS AREA ── */
+.status-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+}
 .spinner {
-  display: inline-block; width: 22px; height: 22px;
-  border: 3px solid var(--border2); border-top-color: var(--accent);
-  border-radius: 50%; animation: spin .7s linear infinite;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.result-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.result-count { font-size: 12px; font-weight: 700; color: var(--text3); letter-spacing: .5px; text-transform: uppercase; }
-.result-badge { background: var(--accent); color: var(--bg); font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 10px; }
-
-.result-card {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; overflow: hidden; margin-bottom: 14px;
-  transition: border-color .15s;
+/* ── RESULTS ── */
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 0 4px;
 }
-.result-card:hover { border-color: var(--border2); }
-
-.rc-head {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 14px 16px 12px; background: var(--bg3);
-  border-bottom: 1px solid var(--border);
+.result-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
 }
-.rc-drawing { font-size: 16px; font-weight: 700; color: var(--accent); flex: 1; line-height: 1.3; word-break: break-all; }
-.rc-name { font-size: 12px; color: var(--text2); margin-top: 2px; }
-.rc-client-proj { font-size: 10px; color: var(--text3); margin-top: 3px; }
-.step-badge { flex-shrink: 0; font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 20px; white-space: nowrap; }
+.result-count-badge {
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-surface-elevated);
+  color: var(--accent-blue);
+  padding: 2px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+}
 
-.rc-progress { padding: 12px 16px; border-bottom: 1px solid var(--border); }
-.progress-labels { display: flex; justify-content: space-between; margin-bottom: 5px; }
-.prog-lbl { font-size: 9px; color: var(--text3); text-align: center; flex: 1; transition: color .2s, font-weight .2s; }
-.prog-lbl.done { color: var(--text2); }
-.prog-lbl.current { font-weight: 700; }
-.prog-track { height: 6px; background: var(--bg4); border-radius: 4px; overflow: hidden; }
-.prog-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-.rc-info { padding: 12px 16px; }
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
-.info-item { display: flex; flex-direction: column; gap: 2px; }
-.info-lbl { font-size: 10px; color: var(--text3); font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
-.info-val { font-size: 13px; color: var(--text2); font-weight: 500; }
-.info-val.highlight { color: var(--green); font-weight: 700; }
-.info-val.empty { color: var(--text3); font-style: italic; }
-.info-val.orange { color: var(--orange); font-weight: 700; }
-.info-val.teal { color: var(--teal); }
+/* ── RESULT ITEM CARD (APPLE STYLE) ── */
+.part-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s var(--ease-apple), border-color 0.2s ease;
+}
+.part-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+}
 
-.no-result { text-align: center; padding: 40px 20px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; }
-.no-result-ico { font-size: 36px; opacity: .3; margin-bottom: 10px; }
-.no-result-t { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
-.no-result-s { font-size: 12px; color: var(--text3); line-height: 1.7; }
+.part-card-header {
+  padding: 15px 16px 13px;
+  background: var(--bg-surface-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.part-drawing-no {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  word-break: break-all;
+}
+.part-name {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+.part-project {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
 
-.footer { margin-top: auto; padding: 16px; text-align: center; font-size: 11px; color: var(--text3); border-top: 1px solid var(--border); width: 100%; }
+.status-tag {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.part-card-body {
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+.info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.info-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.info-value {
+  font-size: 13.5px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.info-value.mono { font-family: var(--font-mono); font-size: 13px; }
+.info-value.empty { color: var(--text-tertiary); }
+.info-value.highlight { color: var(--accent-green); font-weight: 600; }
+.info-value.teal { color: var(--accent-teal); font-weight: 600; }
+
+.pill-tag {
+  display: inline-block;
+  background: var(--accent-teal-soft);
+  color: var(--accent-teal);
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── EMPTY / ERROR ── */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+}
+.empty-icon { font-size: 32px; opacity: 0.4; margin-bottom: 10px; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.empty-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+/* ── FOOTER ── */
+.app-footer {
+  margin-top: auto;
+  padding: 20px 16px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  border-top: 1px solid var(--border-subtle);
+  width: 100%;
+}
 
 @media (max-width: 480px) {
-  .header-logo { font-size: 18px; }
-  .info-grid { grid-template-columns: 1fr; }
-  .search-btn { padding: 11px 14px; font-size: 13px; }
-  .prog-lbl { font-size: 8px; }
-  .rc-drawing { font-size: 14px; }
+  .container { padding: 16px 12px 60px; gap: 16px; }
+  .part-card-body { grid-template-columns: 1fr; gap: 10px; }
+  .apple-btn { padding: 12px 14px; font-size: 14px; }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-logo">🏭 석테크 납품 현황 조회</div>
-  <div class="header-sub">협력업체 조회 시스템 — 도면번호로 납품 현황을 확인하세요</div>
-  <div class="conn-badge" id="conn-badge">
-    <span id="conn-dot">🔄</span>
-    <span id="conn-text" style="color:var(--yellow)">서버 연결 중...</span>
+<!-- STICKY GLASS HEADER -->
+<header class="nav-header">
+  <div class="brand-title">
+    <span>⚙️ 석테크 작업현황</span>
+    <span class="badge-partner">협력업체 조회</span>
   </div>
-</div>
+  <div class="brand-subtitle">도면별 진행 상태 및 납품 일자 조회 시스템</div>
+  <div class="conn-indicator">
+    <div class="conn-dot" id="conn-dot"></div>
+    <span id="conn-text">서버 연결 중...</span>
+  </div>
+</header>
 
-<div class="container">
-  <div class="search-card">
-    <div class="search-label">도면번호 조회</div>
-    <div class="search-row">
+<!-- MAIN CONTAINER -->
+<main class="container">
+
+  <!-- SEGMENTED TABS (SEARCH vs DELIVERY DATE) -->
+  <div class="segment-wrapper">
+    <button class="segment-btn active" id="tab-search" onclick="switchTab('search')">
+      <span>🔍 도면번호 검색</span>
+    </button>
+    <button class="segment-btn" id="tab-delivery" onclick="switchTab('delivery')">
+      <span>📦 납품일자별 조회</span>
+    </button>
+  </div>
+
+  <!-- TAB 1: DRAWING NO SEARCH -->
+  <section id="view-search" class="interactive-card">
+    <div class="card-header-label">도면번호로 조회</div>
+    <div class="search-input-group">
       <input
         id="search-inp"
-        class="search-inp"
+        class="apple-input"
         type="text"
         placeholder="도면번호 입력 (예: 123-001, 456)"
         autocomplete="off"
         autocorrect="off"
         spellcheck="false"
       >
-      <button class="search-btn" id="search-btn">🔍 조회</button>
+      <button class="apple-btn" id="search-btn" onclick="doSearch()">
+        <span>조회</span>
+      </button>
     </div>
-    <div class="search-hint">
-      💡 검색일 기준 최근 2개월 이내의 도면 정보만 조회됩니다. (도면번호 일부 입력 가능)
+    <div class="card-hint">
+      💡 검색일 기준 최근 2개월 이내 수신된 도면만 조회됩니다. (일부 번호만 입력해도 검색 가능)
     </div>
-  </div>
+  </section>
 
+  <!-- TAB 2: DELIVERY DATE PICKER -->
+  <section id="view-delivery" class="interactive-card" style="display:none;">
+    <div class="card-header-label">납품 일자 선택</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <select id="delivery-date-select" class="apple-select" onchange="doDeliveryDateSelect()">
+        <option value="">납품 일자를 선택하세요</option>
+      </select>
+    </div>
+    <div class="card-hint">
+      💡 데이터베이스에 납품 완료 일자가 기록된 날짜 목록입니다. 선택 시 해당 날짜의 전체 납품 품목이 조회됩니다.
+    </div>
+  </section>
+
+  <!-- STATUS / SPINNER -->
   <div id="status-area" class="status-area"></div>
+
+  <!-- RESULTS -->
   <div id="result-area"></div>
-</div>
 
-<div class="footer">
-  석테크 납품 현황 조회 시스템 · 조회 전용
-</div>
+</main>
 
+<!-- FOOTER -->
+<footer class="app-footer">
+  석테크 협력업체 납품 조회 포털 · 읽기 전용 (Read-Only)
+</footer>
+
+<!-- ══ SCRIPT ══ -->
 <script type="module">
 'use strict';
 
@@ -205,10 +516,11 @@ const DB_DOC = doc(fsdb, 'suktech', 'maindb');
 
 const STEPS = ['도면수신','가공중','가공완료','외주품입고','후처리','납품완료'];
 const SKEYS = ['recv','maching','machDone','outsourceIn','postproc','delivered'];
-const STEP_COLORS = ['#6c7086','#f9e2af','#94e2d5','#89b4fa','#fab387','#a6e3a1'];
+const STEP_COLORS = ['#8E8E93', '#FF9F0A', '#64D2FF', '#0A84FF', '#BF5AF2', '#30D158'];
+const STEP_BG_COLORS = ['rgba(142,142,147,0.15)', 'rgba(255,159,10,0.15)', 'rgba(100,210,255,0.15)', 'rgba(10,132,255,0.15)', 'rgba(191,90,242,0.15)', 'rgba(48,209,88,0.15)'];
 const STEP_ICONS  = ['📄','⚙️','✅','📦','🔧','🎉'];
 const STEP_MSG    = [
-  '도면 수신 — 가공 준비 중',
+  '도면 수신 (가공 준비)',
   '가공 진행 중',
   '가공 완료',
   '외주품 입고 완료',
@@ -217,21 +529,21 @@ const STEP_MSG    = [
 ];
 
 let dbData = null;
+let currentTab = 'search'; // 'search' | 'delivery'
 
 function setConn(state) {
   const dot  = document.getElementById('conn-dot');
   const text = document.getElementById('conn-text');
-  const badge = document.getElementById('conn-badge');
-  const map = {
-    connecting: { dot:'🔄', text:'서버 연결 중...', color:'#f9e2af' },
-    online:     { dot:'🟢', text:'실시간 데이터 연결됨', color:'#a6e3a1' },
-    offline:    { dot:'🔴', text:'오프라인 — 새로고침 해주세요', color:'#f38ba8' },
-  };
-  const cfg = map[state] || map.connecting;
-  dot.textContent  = cfg.dot;
-  text.textContent = cfg.text;
-  badge.style.borderColor = cfg.color;
-  text.style.color = cfg.color;
+  if (state === 'online') {
+    dot.className = 'conn-dot online';
+    text.textContent = '실시간 연결됨';
+  } else if (state === 'offline') {
+    dot.className = 'conn-dot offline';
+    text.textContent = '오프라인';
+  } else {
+    dot.className = 'conn-dot';
+    text.textContent = '서버 연결 중...';
+  }
 }
 
 async function loadDB() {
@@ -241,6 +553,7 @@ async function loadDB() {
     if (snap.exists()) {
       dbData = snap.data();
       setConn('online');
+      populateDeliveryDatesDropdown();
     } else {
       setConn('offline');
       showError('데이터를 불러올 수 없습니다.');
@@ -248,11 +561,11 @@ async function loadDB() {
   } catch(err) {
     console.error('Firebase load error:', err);
     setConn('offline');
-    showError('서버 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
+    showError('서버 연결에 실패했습니다. 네트워크를 확인해주세요.');
   }
 }
 
-const fmtDate = d => d ? d.replace(/-/g, '.') : null;
+const fmtDate = d => d ? String(d).replace(/-/g, '.') : null;
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 
 function getStepIdx(part) {
@@ -290,38 +603,6 @@ function getPartRecvDateObj(part) {
   return null;
 }
 
-function doSearch() {
-  const raw = (document.getElementById('search-inp').value || '').trim();
-  if (!raw) {
-    showStatus('');
-    document.getElementById('result-area').innerHTML = '';
-    return;
-  }
-  if (!dbData) {
-    showError('데이터 연결 중입니다. 잠시 후 다시 시도해주세요.');
-    return;
-  }
-
-  // 검색일 기준 2달 전 cutoff
-  const cutoff = new Date();
-  cutoff.setMonth(cutoff.getMonth() - 2);
-  cutoff.setHours(0, 0, 0, 0);
-
-  const query = raw.toLowerCase();
-  const parts = (dbData.parts || []).filter(p => {
-    if (!(p.drawingNo || '').toLowerCase().includes(query)) return false;
-    const dt = getPartRecvDateObj(p);
-    if (!dt) return true; // 날짜 불명확 시 검색어 일치하면 포함
-    return dt >= cutoff;
-  });
-
-  if (parts.length === 0) {
-    showNoResult(raw);
-    return;
-  }
-  renderResults(parts, raw);
-}
-
 function getPartRecvKey(part) {
   const proj = (dbData.projects || []).find(p => p.id === part.projectId);
   if (part.recvDate) {
@@ -341,27 +622,161 @@ function getPartRecvKey(part) {
   return '00000000';
 }
 
-function renderResults(parts) {
+// ── TAB SWITCHING ──
+window.switchTab = function(tab) {
+  currentTab = tab;
+  const tabSearchBtn   = document.getElementById('tab-search');
+  const tabDeliveryBtn = document.getElementById('tab-delivery');
+  const viewSearch     = document.getElementById('view-search');
+  const viewDelivery   = document.getElementById('view-delivery');
+  const resultArea     = document.getElementById('result-area');
+
+  if (tab === 'search') {
+    tabSearchBtn.classList.add('active');
+    tabDeliveryBtn.classList.remove('active');
+    viewSearch.style.display = 'flex';
+    viewDelivery.style.display = 'none';
+    resultArea.innerHTML = '';
+    const searchVal = document.getElementById('search-inp').value.trim();
+    if (searchVal) doSearch();
+  } else {
+    tabDeliveryBtn.classList.add('active');
+    tabSearchBtn.classList.remove('active');
+    viewSearch.style.display = 'none';
+    viewDelivery.style.display = 'flex';
+    resultArea.innerHTML = '';
+    doDeliveryDateSelect();
+  }
+};
+
+// ── POPULATE DELIVERY DATES DROPDOWN ──
+function populateDeliveryDatesDropdown() {
+  const selectEl = document.getElementById('delivery-date-select');
+  if (!selectEl || !dbData || !dbData.parts) return;
+
+  // Extract all non-empty delivered dates and count them
+  const dateCounts = {};
+  dbData.parts.forEach(p => {
+    if (p.delivered && String(p.delivered).trim() !== '') {
+      const dStr = fmtDate(p.delivered);
+      dateCounts[dStr] = (dateCounts[dStr] || 0) + 1;
+    }
+  });
+
+  // Sort dates descending (latest date first)
+  const sortedDates = Object.keys(dateCounts).sort((a, b) => {
+    const na = a.replace(/[-.]/g, '');
+    const nb = b.replace(/[-.]/g, '');
+    return nb.localeCompare(na);
+  });
+
+  selectEl.innerHTML = '<option value="">납품 일자를 선택하세요</option>';
+  sortedDates.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = `${d} (${dateCounts[d]}건 납품)`;
+    selectEl.appendChild(opt);
+  });
+}
+
+// ── TAB 1: SEARCH BY DRAWING NO ──
+window.doSearch = function() {
+  const raw = (document.getElementById('search-inp').value || '').trim();
+  if (!raw) {
+    showStatus('');
+    document.getElementById('result-area').innerHTML = '';
+    return;
+  }
+  if (!dbData) {
+    showError('데이터 연결 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+
+  // 2 months cutoff
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 2);
+  cutoff.setHours(0, 0, 0, 0);
+
+  const query = raw.toLowerCase();
+  const parts = (dbData.parts || []).filter(p => {
+    if (!(p.drawingNo || '').toLowerCase().includes(query)) return false;
+    const dt = getPartRecvDateObj(p);
+    if (!dt) return true;
+    return dt >= cutoff;
+  });
+
+  if (parts.length === 0) {
+    showNoResult(`"${raw}" 에 해당하는 최근 2개월 이내 도면이 없습니다.`);
+    return;
+  }
+  renderResults(parts, `검색 결과 ("${raw}")`);
+};
+
+// ── TAB 2: DELIVERY DATE SELECT ──
+window.doDeliveryDateSelect = function() {
+  const selectEl = document.getElementById('delivery-date-select');
+  const selectedDate = selectEl ? selectEl.value : '';
+
+  if (!selectedDate) {
+    showStatus('');
+    document.getElementById('result-area').innerHTML = '';
+    return;
+  }
+  if (!dbData) {
+    showError('데이터 연결 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+
+  const parts = (dbData.parts || []).filter(p => {
+    if (!p.delivered) return false;
+    return fmtDate(p.delivered) === selectedDate;
+  });
+
+  if (parts.length === 0) {
+    showNoResult(`${selectedDate} 에 납품 완료된 품목이 없습니다.`);
+    return;
+  }
+
+  renderResults(parts, `📦 ${selectedDate} 납품 품목 목록`);
+};
+
+// ── RENDER RESULTS ──
+function renderResults(parts, titleLabel) {
   const area = document.getElementById('result-area');
   showStatus('');
+
+  // Sort by drawing receipt date descending
   const sorted = [...parts].sort((a, b) => {
     const da = getPartRecvKey(a);
     const db = getPartRecvKey(b);
     if (db !== da) {
-      return db.localeCompare(da); // 최근 일자 우선 (내림차순)
+      return db.localeCompare(da);
     }
     return (a.drawingNo || '').localeCompare(b.drawingNo || '');
   });
-  let html = `<div class="result-header"><span class="result-count">조회 결과</span><span class="result-badge">${sorted.length}건</span></div>`;
-  for (const part of sorted) html += buildCard(part);
+
+  let html = `
+    <div class="result-header">
+      <span class="result-title">${esc(titleLabel)}</span>
+      <span class="result-count-badge">${sorted.length}건</span>
+    </div>
+    <div class="results-list">
+  `;
+
+  for (const part of sorted) {
+    html += buildCard(part);
+  }
+
+  html += `</div>`;
   area.innerHTML = html;
 }
 
 function buildCard(part) {
-  const stepIdx   = getStepIdx(part);
-  const stepColor = STEP_COLORS[stepIdx];
-  const stepIcon  = STEP_ICONS[stepIdx];
-  const stepMsg   = STEP_MSG[stepIdx];
+  const stepIdx     = getStepIdx(part);
+  const stepColor   = STEP_COLORS[stepIdx];
+  const stepBgColor = STEP_BG_COLORS[stepIdx];
+  const stepIcon    = STEP_ICONS[stepIdx];
+  const stepMsg     = STEP_MSG[stepIdx];
 
   const proj   = (dbData.projects || []).find(p => p.id === part.projectId);
   const client = proj ? (dbData.clients || []).find(c => c.id === proj.clientId) : null;
@@ -374,70 +789,75 @@ function buildCard(part) {
   const qty       = part.qty || null;
 
   return `
-  <div class="result-card">
-    <div class="rc-head">
+  <article class="part-card">
+    <div class="part-card-header">
       <div>
-        <div class="rc-drawing">${esc(part.drawingNo)}</div>
-        ${part.name ? `<div class="rc-name">${esc(part.name)}</div>` : ''}
-        ${projLabel ? `<div class="rc-client-proj">${esc(projLabel)}</div>` : ''}
+        <div class="part-drawing-no">${esc(part.drawingNo)}</div>
+        ${part.name ? `<div class="part-name">${esc(part.name)}</div>` : ''}
+        ${projLabel ? `<div class="part-project">${esc(projLabel)}</div>` : ''}
+      </div>
+      <div class="status-tag" style="background:${stepBgColor};color:${stepColor};border:1px solid ${stepColor}40;">
+        <span>${stepIcon}</span>
+        <span>${STEPS[stepIdx]}</span>
       </div>
     </div>
-    <div class="rc-info">
-      <div class="info-grid">
-        <div class="info-item" style="grid-column:1/-1;">
-          <span class="info-lbl">현재 상태</span>
-          <span class="info-val" style="color:${stepColor};font-weight:700;">${stepIcon} ${stepMsg}</span>
-        </div>
-        ${qty ? `<div class="info-item"><span class="info-lbl">수량</span><span class="info-val">${esc(String(qty))} EA</span></div>` : ''}
-        ${postType ? `<div class="info-item"><span class="info-lbl">후처리 종류</span><span class="info-val teal">${esc(postType)}</span></div>` : ''}
-        <div class="info-item" style="grid-column:1/-1;">
-          <span class="info-lbl">납품일</span>
-          <span class="info-val ${delivered ? 'highlight' : 'empty'}">
-            ${delivered ? '✅ ' + delivered : '납품 예정'}
-          </span>
-        </div>
+    <div class="part-card-body">
+      <div class="info-field">
+        <span class="info-label">도면 수신일</span>
+        <span class="info-value mono ${recvDate ? '' : 'empty'}">${recvDate || '—'}</span>
+      </div>
+      <div class="info-field">
+        <span class="info-label">현재 상태</span>
+        <span class="info-value" style="color:${stepColor};font-weight:600;">${stepMsg}</span>
+      </div>
+      ${qty ? `
+      <div class="info-field">
+        <span class="info-label">수량</span>
+        <span class="info-value mono">${esc(String(qty))} EA</span>
+      </div>` : ''}
+      ${postType ? `
+      <div class="info-field">
+        <span class="info-label">후처리 종류</span>
+        <div><span class="pill-tag">${esc(postType)}</span></div>
+      </div>` : ''}
+      <div class="info-field" style="grid-column: 1 / -1;">
+        <span class="info-label">납품일</span>
+        <span class="info-value mono ${delivered ? 'highlight' : 'empty'}">
+          ${delivered ? '✅ ' + delivered : '납품 예정'}
+        </span>
       </div>
     </div>
-  </div>`;
+  </article>`;
 }
 
-function showSpinner() {
-  document.getElementById('status-area').innerHTML = `<div class="spinner"></div>`;
-  document.getElementById('result-area').innerHTML = '';
-}
 function showStatus(msg) {
-  document.getElementById('status-area').innerHTML =
-    msg ? `<span style="font-size:13px;color:var(--text3);">${msg}</span>` : '';
+  document.getElementById('status-area').innerHTML = msg ? `<span style="font-size:13px;color:var(--text-secondary);">${msg}</span>` : '';
 }
 function showError(msg) {
   document.getElementById('status-area').innerHTML = '';
   document.getElementById('result-area').innerHTML = `
-    <div class="no-result">
-      <div class="no-result-ico">⚠️</div>
-      <div class="no-result-t">오류 발생</div>
-      <div class="no-result-s">${esc(msg)}</div>
+    <div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <div class="empty-title">오류 발생</div>
+      <div class="empty-desc">${esc(msg)}</div>
     </div>`;
 }
-function showNoResult(query) {
+function showNoResult(msg) {
   document.getElementById('status-area').innerHTML = '';
   document.getElementById('result-area').innerHTML = `
-    <div class="no-result">
-      <div class="no-result-ico">🔍</div>
-      <div class="no-result-t">조회 결과 없음</div>
-      <div class="no-result-s">
-        "<strong>${esc(query)}</strong>" 에 해당하는 도면번호를 찾을 수 없습니다.<br>
-        도면번호를 다시 확인해주세요.
-      </div>
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">조회 결과 없음</div>
+      <div class="empty-desc">${esc(msg)}</div>
     </div>`;
 }
 
-// 버튼 이벤트
-document.getElementById('search-btn').addEventListener('click', doSearch);
+// Enter Key search
 document.getElementById('search-inp').addEventListener('keydown', e => {
   if (e.key === 'Enter') doSearch();
 });
 
-// 초기 연결
+// Initialize
 loadDB();
 </script>
 
