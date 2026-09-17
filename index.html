@@ -245,15 +245,6 @@ body {
   color: var(--text-tertiary);
   line-height: 1.55;
 }
-.card-notice {
-  font-size: 12px;
-  background: rgba(255, 159, 10, 0.1);
-  border: 1px solid rgba(255, 159, 10, 0.25);
-  color: var(--accent-orange);
-  padding: 9px 12px;
-  border-radius: 10px;
-  line-height: 1.5;
-}
 
 /* ── APPLE STYLE CALENDAR WIDGET ── */
 .calendar-container {
@@ -537,9 +528,9 @@ body {
 <header class="nav-header">
   <div class="brand-title">
     <span>⚙️ 석테크 납품조회 시스템</span>
-    <span class="badge-partner">하나테크 전용</span>
+    <span class="badge-partner">LJ 전용</span>
   </div>
-  <div class="brand-subtitle">하나테크 납품 현황 및 도면별 진행 상태 조회</div>
+  <div class="brand-subtitle">LJ 납품 현황 및 도면별 진행 상태 조회</div>
   <div class="conn-indicator">
     <div class="conn-dot" id="conn-dot"></div>
     <span id="conn-text">서버 연결 중...</span>
@@ -562,9 +553,6 @@ body {
   <!-- TAB 1: DELIVERY DATE PICKER (CALENDAR + DROPDOWN) -->
   <section id="view-delivery" class="interactive-card">
     <div class="card-header-label">납품 일자 선택 (달력 및 드롭다운)</div>
-
-    <!-- NOTICE BANNER (IF HANA TECH IS NOT REGISTERED YET) -->
-    <div id="hana-notice" class="card-notice" style="display:none;"></div>
 
     <!-- QUICK DROPDOWN -->
     <div style="display:flex;flex-direction:column;gap:6px;">
@@ -596,19 +584,19 @@ body {
     </div>
 
     <div class="card-hint">
-      💡 초록색 점이 표시된 날짜는 납품 완료일입니다. 달력의 날짜를 누르거나 드롭다운으로 선택하시면 당일 납품 품목이 아래에 출력됩니다.
+      💡 초록색 점이 표시된 날짜는 LJ 납품 완료일입니다. 달력의 날짜를 누르거나 드롭다운으로 선택하시면 당일 납품 품목이 아래에 출력됩니다.
     </div>
   </section>
 
   <!-- TAB 2: DRAWING NO SEARCH -->
   <section id="view-search" class="interactive-card" style="display:none;">
-    <div class="card-header-label">도면번호 조회</div>
+    <div class="card-header-label">LJ 도면번호 조회</div>
     <div class="search-input-group">
       <input
         id="search-inp"
         class="apple-input"
         type="text"
-        placeholder="도면번호 입력 (예: 123-001, 456)"
+        placeholder="도면번호 입력 (예: B601, 25F)"
         autocomplete="off"
         autocorrect="off"
         spellcheck="false"
@@ -618,7 +606,7 @@ body {
       </button>
     </div>
     <div class="card-hint">
-      💡 최근 2개월 이내 수신된 도면만 조회됩니다. (도면번호 일부만 입력해도 검색 가능)
+      💡 LJ 관련 도면 중 최근 2개월 이내 수신된 도면만 조회됩니다. (도면번호 일부만 입력해도 검색 가능)
     </div>
   </section>
 
@@ -632,7 +620,7 @@ body {
 
 <!-- FOOTER -->
 <footer class="app-footer">
-  석테크 납품조회 시스템 · 하나테크 업무협력 전용 포털
+  석테크 납품조회 시스템 · LJ 업무협력 전용 포털
 </footer>
 
 <!-- ══ SCRIPT ══ -->
@@ -677,7 +665,6 @@ let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth(); // 0-11
 let calSelectedDate = ''; // 'YYYY.MM.DD'
 let deliveryDateCounts = {}; // { 'YYYY.MM.DD': count }
-let hasHanaClientInDB = false;
 
 function setConn(state) {
   const dot  = document.getElementById('conn-dot');
@@ -717,7 +704,7 @@ async function loadDB() {
 const fmtDate = d => d ? String(d).trim().replace(/-/g, '.') : null;
 const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 
-// ── 거래처 매칭 ──
+// ── LJ (하나테크) 거래처 전용 필터링 ──
 function getPartClient(part) {
   if (!dbData) return null;
   const proj = (dbData.projects || []).find(p => p.id === part.projectId);
@@ -725,22 +712,12 @@ function getPartClient(part) {
   return (dbData.clients || []).find(c => c.id === proj.clientId) || null;
 }
 
-function checkHanaClientExists() {
-  if (!dbData || !dbData.clients) return false;
-  return dbData.clients.some(c => {
-    const n = (c.name || '').replace(/\s+/g, '').toLowerCase();
-    return n.includes('하나') || n.includes('hana');
-  });
-}
-
-function shouldIncludePart(part) {
-  // DB에 하나테크가 등록되어 있으면 하나테크만 엄격 필터링
-  // 아직 DB에 하나테크가 등록되어 있지 않으면 테스트를 위해 전체 표시 (안내 배너 노출)
-  if (!hasHanaClientInDB) return true;
+function isLJPart(part) {
   const client = getPartClient(part);
   if (!client || !client.name) return false;
   const clean = client.name.replace(/\s+/g, '').toLowerCase();
-  return clean.includes('하나') || clean.includes('hana');
+  // LJ 매칭 (대소문자 무관 및 하나테크 표기 지원)
+  return clean === 'lj' || clean.includes('lj') || clean.includes('하나') || clean.includes('hana');
 }
 
 function getStepIdx(part) {
@@ -801,20 +778,10 @@ function getPartRecvKey(part) {
 function initApp() {
   if (!dbData || !dbData.parts) return;
 
-  hasHanaClientInDB = checkHanaClientExists();
-  const noticeEl = document.getElementById('hana-notice');
-  if (noticeEl) {
-    if (!hasHanaClientInDB) {
-      noticeEl.style.display = 'block';
-      noticeEl.innerHTML = 'ℹ️ <b>안내:</b> 메인 작업관리 앱 거래처에 아직 <b>하나테크</b>가 등록되지 않아 전체 납품 일자를 테스트 표시 중입니다. 거래처에 하나테크를 등록하시면 자동으로 하나테크 데이터만 분리됩니다.';
-    } else {
-      noticeEl.style.display = 'none';
-    }
-  }
-
   deliveryDateCounts = {};
   dbData.parts.forEach(p => {
-    if (shouldIncludePart(p) && p.delivered && String(p.delivered).trim() !== '') {
+    // LJ 거래처 소속 + 납품 완료일 있는 품목만 수집
+    if (isLJPart(p) && p.delivered && String(p.delivered).trim() !== '') {
       const dStr = fmtDate(p.delivered);
       deliveryDateCounts[dStr] = (deliveryDateCounts[dStr] || 0) + 1;
     }
@@ -970,15 +937,15 @@ function renderDeliveryListForDate(dateStr) {
   if (!dbData) return;
 
   const parts = (dbData.parts || []).filter(p => {
-    return shouldIncludePart(p) && p.delivered && fmtDate(p.delivered) === dateStr;
+    return isLJPart(p) && p.delivered && fmtDate(p.delivered) === dateStr;
   });
 
   if (parts.length === 0) {
-    showNoResult(`${dateStr} 에 납품 완료된 품목이 없습니다.`);
+    showNoResult(`${dateStr} 에 LJ 납품 완료된 품목이 없습니다.`);
     return;
   }
 
-  renderResults(parts, `📦 ${dateStr} 납품 품목 목록`);
+  renderResults(parts, `📦 ${dateStr} LJ 납품 품목 목록`);
 }
 
 // ── TAB SWITCHING ──
@@ -1011,7 +978,7 @@ window.switchTab = function(tab) {
   }
 };
 
-// ── TAB 2: SEARCH BY DRAWING NO ──
+// ── TAB 2: SEARCH BY DRAWING NO (LJ ONLY) ──
 window.doSearch = function() {
   const raw = (document.getElementById('search-inp').value || '').trim();
   if (!raw) {
@@ -1031,7 +998,7 @@ window.doSearch = function() {
 
   const query = raw.toLowerCase();
   const parts = (dbData.parts || []).filter(p => {
-    if (!shouldIncludePart(p)) return false;
+    if (!isLJPart(p)) return false;
     if (!(p.drawingNo || '').toLowerCase().includes(query)) return false;
     const dt = getPartRecvDateObj(p);
     if (!dt) return true;
@@ -1039,10 +1006,10 @@ window.doSearch = function() {
   });
 
   if (parts.length === 0) {
-    showNoResult(`"${raw}" 에 해당하는 최근 2개월 이내 도면이 없습니다.`);
+    showNoResult(`"${raw}" 에 해당하는 LJ 최근 2개월 이내 도면이 없습니다.`);
     return;
   }
-  renderResults(parts, `검색 결과 ("${raw}")`);
+  renderResults(parts, `LJ 검색 결과 ("${raw}")`);
 };
 
 // ── RENDER RESULTS ──
